@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { LoadingService } from '../state/loading';
+import { LoadingService } from '../state/loading.service';
 import { CommonModule } from '@angular/common';
 
 @Component({

@@ -3,11 +3,13 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeatureFlag } from '../../models/feature-flag.model';
 import { FeatureFlagsService } from '../../services/feature-flags.service';
+import { ErrorHandlerService } from '../../core/state/error-handler.service';
+import { ErrorMessageComponent } from "../../shared/ui/error-message/error-message";
 
 @Component({
     selector: 'app-feature-flags',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, ErrorMessageComponent],
     templateUrl: './feature-flags.component.html',
     styleUrls: ['./feature-flags.component.css']
 })
@@ -23,7 +25,10 @@ export class FeatureFlagsComponent implements OnInit {
 
     environments: string[] = ['development', 'staging', 'production'];
 
-    constructor(private featureFlagsService: FeatureFlagsService) { }
+    constructor(
+        private featureFlagsService: FeatureFlagsService,
+        private errorHandlerService: ErrorHandlerService
+    ) { }
 
     ngOnInit(): void {
         this.loadFlags();
@@ -79,14 +84,32 @@ export class FeatureFlagsComponent implements OnInit {
     }
 
     toggleStatus(flag: FeatureFlag): void {
+
+        const previousStatus = flag.status;
         this.featureFlagsService.toggleFeatureFlagStatus(flag.id).subscribe({
             next: (updatedFlag) => {
                 this.flags.update(flags =>
-                    flags.map(f => f.id === updatedFlag.id ? updatedFlag : f)
+                    flags.map(f =>
+                        f.id === updatedFlag.id
+                            ? updatedFlag
+                            : f
+                    )
                 );
             },
-            error: (error) => {
-                console.error('Error toggling flag:', error);
+
+            error: () => {
+                //UI rollback
+                this.flags.update(flags =>
+                    flags.map(f =>
+                        f.id === flag.id
+                            ? { ...f, status: previousStatus }
+                            : f
+                    )
+                );
+
+                this.errorHandlerService.showError(
+                    'Failed to toggle feature flag. Change reverted.'
+                );
             }
         });
     }

@@ -76,12 +76,22 @@ export class FeatureFlagsService {
 
     toggleFeatureFlagStatus(id: string): Observable<FeatureFlag> {
         return this.http.get<FeatureFlag>(`${this.apiUrl}/${id}`).pipe(
-            catchError(error => throwError(() => new Error(`Feature flag with id ${id} not found`))),
+
             switchMap(flag => {
+                if (Math.random() < 0.25) {
+                    return throwError(() => new Error('Random toggle failure'));
+                }
+
                 const updatedFlag = { ...flag, status: !flag.status };
-                return this.http.patch<FeatureFlag>(`${this.apiUrl}/${id}`, { status: updatedFlag.status });
+                return this.http.patch<FeatureFlag>(
+                    `${this.apiUrl}/${id}`,
+                    { status: updatedFlag.status }
+                );
             }),
-            catchError(error => throwError(() => new Error('Failed to toggle feature flag')))
+
+            catchError(() =>
+                throwError(() => new Error('Failed to toggle feature flag'))
+            )
         );
     }
 }
