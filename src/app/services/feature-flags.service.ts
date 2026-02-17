@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
-import { FeatureFlagsStatsDto, PagedResultDto } from '../models/feature-flag.dto';
+import { PagedResultDto } from '../models/feature-flag.dto';
 import { FeatureFlag } from '../models/feature-flag.model';
 
 @Injectable({
@@ -12,22 +12,6 @@ export class FeatureFlagsService {
     private apiUrl = 'http://localhost:3000/feature-flags';
 
     constructor(private http: HttpClient) { }
-
-    getFeatureFlagsStats(): Observable<FeatureFlagsStatsDto> {
-        return this.http.get<FeatureFlag[]>(this.apiUrl).pipe(
-            map(featureFlags => {
-                const total = featureFlags.length;
-                const enabled = featureFlags.filter(f => f.status).length;
-                const disabled = total - enabled;
-                const development = featureFlags.filter(f => f.environment === 'development').length;
-                const staging = featureFlags.filter(f => f.environment === 'staging').length;
-                const production = featureFlags.filter(f => f.environment === 'production').length;
-
-                return { total, enabled, disabled, development, staging, production };
-            }),
-            catchError(error => throwError(() => new Error('Failed to fetch stats')))
-        );
-    }
 
     getFeatureFlags(
         environment?: string,
