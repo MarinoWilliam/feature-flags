@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "json-server": "json-server --watch db.json --port 3000 --delay 500",
+    "json-server": "json-server --watch db.json --port 3000 --delay 400",
     "start:angular": "ng serve",
     "start": "npm-run-all --parallel json-server start:angular",
     "build": "ng build",

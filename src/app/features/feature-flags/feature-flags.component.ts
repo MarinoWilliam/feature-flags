@@ -14,7 +14,6 @@ import { FeatureFlagsService } from '../../services/feature-flags.service';
 export class FeatureFlagsComponent implements OnInit {
     flags = signal<FeatureFlag[]>([]);
     totalCount = signal<number>(0);
-    loading = signal<boolean>(false);
 
     searchTerm = signal<string>('');
     selectedEnvironment = signal<string>('all');
@@ -31,8 +30,6 @@ export class FeatureFlagsComponent implements OnInit {
     }
 
     loadFlags(): void {
-        this.loading.set(true);
-
         const env = this.selectedEnvironment() === 'all' ? undefined : this.selectedEnvironment();
         const status = this.selectedStatus() === 'all' ? undefined : this.selectedStatus() === 'enabled';
         const name = this.searchTerm() || undefined;
@@ -47,11 +44,9 @@ export class FeatureFlagsComponent implements OnInit {
             next: (result) => {
                 this.flags.set(result.Items);
                 this.totalCount.set(result.TotalCount);
-                this.loading.set(false);
             },
             error: (error) => {
                 console.error('Error loading flags:', error);
-                this.loading.set(false);
             }
         });
     }
