@@ -1,0 +1,144 @@
+{
+  "feature-flags": [
+    {
+      "id": "ff-001",
+      "name": "new-dashboard-ui",
+      "environment": "development",
+      "createdDate": "2026-01-05T10:15:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-002",
+      "name": "beta-payment-gateway",
+      "environment": "staging",
+      "createdDate": "2026-01-10T14:30:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-003",
+      "name": "ai-recommendations",
+      "environment": "production",
+      "createdDate": "2026-01-15T09:00:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-004",
+      "name": "dark-mode",
+      "environment": "production",
+      "createdDate": "2026-01-18T16:45:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-005",
+      "name": "user-profile-redesign",
+      "environment": "development",
+      "createdDate": "2026-01-20T11:20:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-006",
+      "name": "multi-language-support",
+      "environment": "staging",
+      "createdDate": "2026-01-22T08:10:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-007",
+      "name": "advanced-analytics",
+      "environment": "production",
+      "createdDate": "2026-01-25T13:55:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-008",
+      "name": "real-time-notifications",
+      "environment": "development",
+      "createdDate": "2026-01-28T09:40:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-009",
+      "name": "oauth-login",
+      "environment": "staging",
+      "createdDate": "2026-02-01T12:00:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-010",
+      "name": "two-factor-authentication",
+      "environment": "production",
+      "createdDate": "2026-02-03T15:25:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-011",
+      "name": "performance-monitoring",
+      "environment": "development",
+      "createdDate": "2026-02-05T10:05:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-012",
+      "name": "new-search-algorithm",
+      "environment": "staging",
+      "createdDate": "2026-02-07T17:45:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-013",
+      "name": "image-optimization",
+      "environment": "production",
+      "createdDate": "2026-02-09T08:30:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-014",
+      "name": "chat-support",
+      "environment": "development",
+      "createdDate": "2026-02-10T14:10:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-015",
+      "name": "auto-save-drafts",
+      "environment": "staging",
+      "createdDate": "2026-02-12T11:55:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-016",
+      "name": "role-based-access-control",
+      "environment": "production",
+      "createdDate": "2026-02-14T09:20:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-017",
+      "name": "api-rate-limiting",
+      "environment": "development",
+      "createdDate": "2026-02-15T13:35:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-018",
+      "name": "export-to-csv",
+      "environment": "staging",
+      "createdDate": "2026-02-16T16:50:00Z",
+      "status": true
+    },
+    {
+      "id": "ff-019",
+      "name": "push-notifications",
+      "environment": "production",
+      "createdDate": "2026-02-17T07:45:00Z",
+      "status": false
+    },
+    {
+      "id": "ff-020",
+      "name": "custom-themes",
+      "environment": "development",
+      "createdDate": "2026-02-17T10:30:00Z",
+      "status": true
+    }
+  ]
+}

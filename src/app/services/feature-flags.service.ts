@@ -1,33 +1,32 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, catchError } from 'rxjs/operators';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';
 import { FeatureFlagsStatsDto, PagedResultDto } from '../models/feature-flag.dto';
 import { FeatureFlag } from '../models/feature-flag.model';
-import mockData from '../../assets/mock-feature-flags.json';
 
 @Injectable({
     providedIn: 'root'
 })
 export class FeatureFlagsService {
-    private featureFlags: FeatureFlag[] = mockData.featureFlags as FeatureFlag[];
-    private apiDelay = 300;
+    private apiUrl = 'http://localhost:3000/feature-flags';
+
+    constructor(private http: HttpClient) { }
 
     getFeatureFlagsStats(): Observable<FeatureFlagsStatsDto> {
-        try {
-            const total = this.featureFlags.length;
-            const enabled = this.featureFlags.filter(f => f.status).length;
-            const disabled = total - enabled;
-            const development = this.featureFlags.filter(f => f.environment === 'development').length;
-            const staging = this.featureFlags.filter(f => f.environment === 'staging').length;
-            const production = this.featureFlags.filter(f => f.environment === 'production').length;
+        return this.http.get<FeatureFlag[]>(this.apiUrl).pipe(
+            map(featureFlags => {
+                const total = featureFlags.length;
+                const enabled = featureFlags.filter(f => f.status).length;
+                const disabled = total - enabled;
+                const development = featureFlags.filter(f => f.environment === 'development').length;
+                const staging = featureFlags.filter(f => f.environment === 'staging').length;
+                const production = featureFlags.filter(f => f.environment === 'production').length;
 
-            return of({ total, enabled, disabled, development, staging, production }).pipe(
-                delay(this.apiDelay),
-                catchError(error => throwError(() => new Error('Failed to fetch stats')))
-            );
-        } catch (error) {
-            return throwError(() => new Error('Failed to fetch stats'));
-        }
+                return { total, enabled, disabled, development, staging, production };
+            }),
+            catchError(error => throwError(() => new Error('Failed to fetch stats')))
+        );
     }
 
     getFeatureFlags(
@@ -37,46 +36,52 @@ export class FeatureFlagsService {
         page: number = 1,
         pageSize: number = 10
     ): Observable<PagedResultDto<FeatureFlag>> {
-        try {
-            let filtered = [...this.featureFlags];
 
-            if (environment) {
-                filtered = filtered.filter(f => f.environment === environment);
-            }
-            if (status !== undefined) {
-                filtered = filtered.filter(f => f.status === status);
-            }
-            if (name) {
-                filtered = filtered.filter(f => f.name.toLowerCase().includes(name.toLowerCase()));
-            }
+        let params = new HttpParams()
+            .set('_page', page)
+            .set('_limit', pageSize);
 
-            const start = (page - 1) * pageSize;
-            const Items = filtered.slice(start, start + pageSize);
-
-            return of({ Items, TotalCount: filtered.length }).pipe(
-                delay(this.apiDelay),
-                catchError(error => throwError(() => new Error('Failed to fetch feature flags')))
-            );
-        } catch (error) {
-            return throwError(() => new Error('Failed to fetch feature flags'));
+        if (environment) {
+            params = params.set('environment', environment);
         }
+
+        if (status !== undefined) {
+            params = params.set('status', status);
+        }
+
+        if (name) {
+            params = params.set('name_like', name);
+        }
+
+        return this.http.get<FeatureFlag[]>(this.apiUrl, {
+            params,
+            observe: 'response'
+        }).pipe(
+            map(response => {
+
+                const totalCount =
+                    Number(response.headers.get('X-Total-Count')) ?? 0;
+
+                return {
+                    Items: response.body ?? [],
+                    TotalCount: totalCount
+                };
+            }),
+            catchError(() =>
+                throwError(() => new Error('Failed to fetch feature flags'))
+            )
+        );
     }
 
+
     toggleFeatureFlagStatus(id: string): Observable<FeatureFlag> {
-        try {
-            const flag = this.featureFlags.find(f => f.id === id);
-            if (!flag) {
-                return throwError(() => new Error(`Feature flag with id ${id} not found`));
-            }
-
-            flag.status = !flag.status;
-
-            return of(flag).pipe(
-                delay(this.apiDelay),
-                catchError(error => throwError(() => new Error('Failed to toggle feature flag')))
-            );
-        } catch (error) {
-            return throwError(() => new Error('Failed to toggle feature flag'));
-        }
+        return this.http.get<FeatureFlag>(`${this.apiUrl}/${id}`).pipe(
+            catchError(error => throwError(() => new Error(`Feature flag with id ${id} not found`))),
+            switchMap(flag => {
+                const updatedFlag = { ...flag, status: !flag.status };
+                return this.http.patch<FeatureFlag>(`${this.apiUrl}/${id}`, { status: updatedFlag.status });
+            }),
+            catchError(error => throwError(() => new Error('Failed to toggle feature flag')))
+        );
     }
 }
