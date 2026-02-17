@@ -1,0 +1,129 @@
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <h1 class="page-title">Feature Flags</h1>
+        <p class="page-desc">Configure system's feature flags and manage environments.</p>
+    </div>
+
+    <div class="custom-card p-0">
+        <div class="card-header d-block">
+            <div class="row gx-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fs-12 fw-semibold text-muted mb-1">Search Flag</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search feature flags..."
+                            [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fs-12 fw-semibold text-muted mb-1">Environment</label>
+                    <select class="form-select" [ngModel]="selectedEnvironment()"
+                        (ngModelChange)="onEnvironmentChange($event)">
+                        <option value="all">All Environments</option>
+                        <option *ngFor="let env of environments" [value]="env">
+                            {{ env | titlecase }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fs-12 fw-semibold text-muted mb-1">Status</label>
+                    <select class="form-select" [ngModel]="selectedStatus()" (ngModelChange)="onStatusChange($event)">
+                        <option value="all">All Statuses</option>
+                        <option value="enabled">Enabled Only</option>
+                        <option value="disabled">Disabled Only</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive custom-table custom-scroll table-compact">
+            <table class="table table-hover mb-0">
+                <thead class="bg-thead">
+                    <tr>
+                        <th style="width: 10%">ID</th>
+                        <th style="width: 25%">FLAG NAME</th>
+                        <th style="width: 15%">ENVIRONMENT</th>
+                        <th style="width: 20%">CREATED DATE</th>
+                        <th style="width: 15%">STATUS</th>
+                        <th style="width: 15%" class="text-end">TOGGLE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let flag of paginatedFlags()">
+                        <td>
+                            <span class="gray-badge custom-item-round">
+                                {{ flag.id }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong>{{ flag.name }}</strong>
+                        </td>
+                        <td>
+                            <span class="custom-item-round" [ngClass]="{
+                                    'bg-prime-light clr-prim': flag.environment === 'development',
+                                    'bg-warning-light clr-warning': flag.environment === 'staging',
+                                    'bg-success-light clr-success': flag.environment === 'production'
+                                }">
+                                {{ flag.environment | titlecase }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-muted small">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                {{ flag.createdDate | date:'mediumDate' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="custom-item-round"
+                                [ngClass]="flag.status ? 'bg-success-light clr-success' : 'gray-badge'">
+                                {{ flag.status ? 'Enabled' : 'Disabled' }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input large-switch" type="checkbox" role="switch"
+                                    [checked]="flag.status" (change)="toggleStatus(flag)">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr *ngIf="paginatedFlags().length === 0">
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            No feature flags found matching your criteria.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center footer">
+            <span class="fs-12 mute-clr">
+                Showing {{ (pageNumber() - 1) * pageSize() + 1 }}-{{ mathMin(pageNumber() * pageSize(), totalItems()) }}
+                of {{ totalItems() }} flags
+            </span>
+            <nav>
+                <ul class="pagination custom-pagination mb-0">
+                    <li class="page-item" [class.disabled]="pageNumber() === 1">
+                        <a class="page-link" (click)="onPageChange(pageNumber() - 1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item" *ngFor="let p of pageNumbers" [class.active]="p === pageNumber()">
+                        <ng-container *ngIf="p !== '...'; else dots">
+                            <a class="page-link" (click)="onPageChange($any(p))">{{ p }}</a>
+                        </ng-container>
+                        <ng-template #dots>
+                            <span class="page-link disabled-ellipses">...</span>
+                        </ng-template>
+                    </li>
+                    <li class="page-item" [class.disabled]="pageNumber() === totalPages()">
+                        <a class="page-link" (click)="onPageChange(pageNumber() + 1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
