@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { FeatureFlag, Environment } from '../../models/feature-flag.model';
+import { FeatureFlag } from '../../models/feature-flag.model';
+import { FeatureFlagsService } from '../../services/feature-flags.service';
 
 @Component({
     selector: 'app-feature-flags',
@@ -11,99 +12,88 @@ import { FeatureFlag, Environment } from '../../models/feature-flag.model';
     styleUrls: ['./feature-flags.component.css']
 })
 export class FeatureFlagsComponent implements OnInit {
-    // Original data - Will be fetched from service later
-    allFeatureFlags = signal<FeatureFlag[]>([]);
+    flags = signal<FeatureFlag[]>([]);
+    totalCount = signal<number>(0);
+    loading = signal<boolean>(false);
 
-    // State signals
     searchTerm = signal<string>('');
     selectedEnvironment = signal<string>('all');
     selectedStatus = signal<string>('all');
     pageNumber = signal<number>(1);
     pageSize = signal<number>(5);
 
-    // Environments for dropdown
     environments: string[] = ['development', 'staging', 'production'];
 
-    constructor() { }
+    constructor(private featureFlagsService: FeatureFlagsService) { }
 
     ngOnInit(): void {
-        // Boilerplate for initial data fetch
-        this.fetchFeatureFlags();
+        this.loadFlags();
     }
 
-    fetchFeatureFlags(): void {
-        // Mock data for now, will call service later
-        // This is where you would call your service: this.featureFlagService.getFlags().subscribe(...)
-        const mockData: FeatureFlag[] = [
-            { id: 'ff-001', name: 'new-dashboard-ui', environment: 'development', createdDate: '2026-01-05T10:15:00Z', status: true },
-            { id: 'ff-002', name: 'beta-payment-gateway', environment: 'staging', createdDate: '2026-01-10T14:30:00Z', status: false },
-            { id: 'ff-003', name: 'ai-recommendations', environment: 'production', createdDate: '2026-01-15T09:00:00Z', status: true },
-            { id: 'ff-004', name: 'dark-mode', environment: 'production', createdDate: '2026-01-18T16:45:00Z', status: false },
-            { id: 'ff-013', name: 'image-optimization', environment: 'production', createdDate: '2026-02-09T08:30:00Z', status: true },
-            { id: 'ff-020', name: 'custom-themes', environment: 'development', createdDate: '2026-02-17T10:30:00Z', status: true }
-        ];
-        this.allFeatureFlags.set(mockData);
+    loadFlags(): void {
+        this.loading.set(true);
+
+        const env = this.selectedEnvironment() === 'all' ? undefined : this.selectedEnvironment();
+        const status = this.selectedStatus() === 'all' ? undefined : this.selectedStatus() === 'enabled';
+        const name = this.searchTerm() || undefined;
+
+        this.featureFlagsService.getFeatureFlags(
+            env,
+            status,
+            name,
+            this.pageNumber(),
+            this.pageSize()
+        ).subscribe({
+            next: (result) => {
+                this.flags.set(result.Items);
+                this.totalCount.set(result.TotalCount);
+                this.loading.set(false);
+            },
+            error: (error) => {
+                console.error('Error loading flags:', error);
+                this.loading.set(false);
+            }
+        });
     }
 
-    // Computed signals for filtering and pagination
-    filteredFlags = computed(() => {
-        let flags = this.allFeatureFlags();
-
-        // Search filter
-        if (this.searchTerm()) {
-            const term = this.searchTerm().toLowerCase();
-            flags = flags.filter(f =>
-                f.name.toLowerCase().includes(term) ||
-                f.id.toLowerCase().includes(term)
-            );
-        }
-
-        // Environment filter
-        if (this.selectedEnvironment() !== 'all') {
-            flags = flags.filter(f => f.environment === this.selectedEnvironment());
-        }
-
-        // Status filter
-        if (this.selectedStatus() !== 'all') {
-            const isEnabled = this.selectedStatus() === 'enabled';
-            flags = flags.filter(f => f.status === isEnabled);
-        }
-
-        return flags;
-    });
-
-    paginatedFlags = computed(() => {
-        const startIndex = (this.pageNumber() - 1) * this.pageSize();
-        return this.filteredFlags().slice(startIndex, startIndex + this.pageSize());
-    });
-
-    totalItems = computed(() => this.filteredFlags().length);
+    paginatedFlags = computed(() => this.flags());
+    totalItems = computed(() => this.totalCount());
     totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
 
-    // Event handlers
     onSearchChange(): void {
         this.pageNumber.set(1);
+        this.loadFlags();
     }
 
     onEnvironmentChange(env: string): void {
         this.selectedEnvironment.set(env);
         this.pageNumber.set(1);
+        this.loadFlags();
     }
 
     onStatusChange(status: string): void {
         this.selectedStatus.set(status);
         this.pageNumber.set(1);
+        this.loadFlags();
     }
 
     onPageChange(page: number): void {
         if (page < 1 || page > this.totalPages()) return;
         this.pageNumber.set(page);
+        this.loadFlags();
     }
 
     toggleStatus(flag: FeatureFlag): void {
-        this.allFeatureFlags.update(flags =>
-            flags.map(f => f.id === flag.id ? { ...f, status: !f.status } : f)
-        );
+        this.featureFlagsService.toggleFeatureFlagStatus(flag.id).subscribe({
+            next: (updatedFlag) => {
+                this.flags.update(flags =>
+                    flags.map(f => f.id === updatedFlag.id ? updatedFlag : f)
+                );
+            },
+            error: (error) => {
+                console.error('Error toggling flag:', error);
+            }
+        });
     }
 
     mathMin(a: number, b: number): number {

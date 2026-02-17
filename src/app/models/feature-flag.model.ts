@@ -7,7 +7,3 @@ export interface FeatureFlag {
     createdDate: string;
     status: boolean;
 }
-
-export interface FeatureFlagResponse {
-    featureFlags: FeatureFlag[];
-}
