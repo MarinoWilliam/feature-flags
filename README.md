@@ -1,59 +1,101 @@
-# FeatureFlags
+# Feature Flags Configuration Dashboard (Angular 17+)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.2.0.
+A **Feature Flags Management Dashboard** built with modern Angular practices, simulating how enterprise applications manage runtime configuration across multiple environments (development / staging / production).
 
-## Development server
+**Demonstrates:** feature flag filtering, environment-based configuration, server-side pagination, optimistic UI updates, global HTTP loading interception, centralized error handling, and mocked REST API behaviour via `json-server`.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
+## Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| Angular 17+ Standalone | No NgModules – simplified structure |
+| Angular Signals | Local reactive state management |
+| HttpClient Interceptors | Global loader simulation |
+| Bootstrap | Lightweight styling |
+| json-server | Mock REST API |
+| zone.js | Simpler change detection setup |
+
+---
+
+## Architectural Decisions
+
+### Standalone Components
+Uses Angular Standalone Components instead of NgModules to reduce boilerplate, improve encapsulation, and align with Angular's future direction.
+
+### Signals for UI State
+`HttpClient` Observables handle API calls while Angular Signals manage local UI state — keeping things simple without NgRx.
+
+```ts
+flags = signal<FeatureFlag[]>([]);
+totalCount = signal<number>(0);
+pageNumber = signal<number>(1);
+
+totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### API-Driven Filtering & Pagination
+Filtering happens via query params — not in memory — to reflect real backend-driven behaviour.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```ts
+params = params.set('environment', environment);
+params = params.set('status', status);
+params = params.set('name_like', name);
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Optimistic UI Updates
+Flags toggle instantly in the UI. If the API call fails (simulated 25% failure rate), the state rolls back and an error is shown globally.
 
-```bash
-ng generate --help
+```ts
+this.flags.update(flags =>
+  flags.map(f => f.id === flag.id ? { ...f, status: previousStatus } : f)
+);
 ```
 
-## Building
+### Global HTTP Interceptor
+A single `HttpClientInterceptor` handles loading state across all API calls — no per-component loading flags needed.
 
-To build the project run:
+---
 
-```bash
-ng build
+## Project Structure
+
+```
+src/app
+│
+├── components/
+│   └── feature-flags/
+│
+├── core/
+│   ├── interceptors/
+│   └── state/
+│       ├── loading.service.ts
+│       └── error-handler.service.ts
+│
+├── models/
+│   ├── feature-flag.model.ts
+│   └── feature-flag.dto.ts
+│
+├── services/
+│   └── feature-flags.service.ts
+│
+├── shared/
+│   └── ui/
+│       └── error-message/
+
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Getting Started
 
 ```bash
-ng test
+# Clone & install
+git clone https://github.com/MarinoWilliam/feature-flags.git && cd feature-flags
+npm install
+
+# Run mock backend + app
+npm start
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+App runs at `http://localhost:4200` — API at `http://localhost:3000/feature-flags`.
