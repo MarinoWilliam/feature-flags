@@ -99,3 +99,9 @@ npm start
 ```
 
 App runs at `http://localhost:4200` — API at `http://localhost:3000/feature-flags`.
+
+---
+
+## App Demo
+
+![App Demo](./src/assets/demo.gif)
