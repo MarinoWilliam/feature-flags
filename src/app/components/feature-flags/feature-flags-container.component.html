@@ -1,0 +1,15 @@
+<app-error-message />
+
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <h1 class="page-title">Feature Flags</h1>
+        <p class="page-desc">Configure system's feature flags and manage environments.</p>
+    </div>
+
+    <app-feature-flag-filters [searchTerm]="vm().searchTerm" [environment]="vm().environment" [status]="vm().status"
+        [environments]="vm().environments" (searchChange)="setSearch($event)"
+        (environmentChange)="setEnvironment($event)" (statusChange)="setStatus($event)" />
+
+    <app-feature-flag-table [flags]="vm().flags" [page]="vm().page" [totalItems]="vm().totalItems"
+        [pageSize]="vm().pageSize" (toggle)="toggleStatus($event)" (pageChange)="changePage($event)" />
+</div>

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { FeatureFlagsComponent } from './components/feature-flags/feature-flags.component';
+import { FeatureFlagsContainerComponent } from './components/feature-flags/feature-flags-container.component';
 import { LayoutComponent } from './core/layout/layout';
 
 export const routes: Routes = [
@@ -8,7 +8,7 @@ export const routes: Routes = [
         path: '',
         component: LayoutComponent,
         children: [
-            { path: 'feature-flags', component: FeatureFlagsComponent },
+            { path: 'feature-flags', component: FeatureFlagsContainerComponent },
             { path: '', redirectTo: 'feature-flags', pathMatch: 'full' }
         ]
     }

@@ -5,25 +5,51 @@ import { FeatureFlag } from '../../models/feature-flag.model';
 import { FeatureFlagsService } from '../../services/feature-flags.service';
 import { ErrorHandlerService } from '../../core/state/error-handler.service';
 import { ErrorMessageComponent } from "../../shared/ui/error-message/error-message";
+import { FeatureFlagTableComponent } from "./feature-flag-table/feature-flag-table";
+import { FeatureFlagFiltersComponent } from "./feature-flag-filters/feature-flag-filters";
+
+interface FeatureFlagsViewModel {
+    flags: FeatureFlag[];
+    totalItems: number;
+    page: number;
+    pageSize: number;
+    searchTerm: string;
+    environment: string;
+    status: string;
+    environments: string[];
+}
 
 @Component({
-    selector: 'app-feature-flags',
+    selector: 'app-feature-flags-container',
     standalone: true,
-    imports: [CommonModule, FormsModule, ErrorMessageComponent],
-    templateUrl: './feature-flags.component.html',
-    styleUrls: ['./feature-flags.component.css']
+    imports: [CommonModule, FormsModule, ErrorMessageComponent, FeatureFlagTableComponent, FeatureFlagFiltersComponent],
+    templateUrl: './feature-flags-container.component.html',
+    styleUrl: './feature-flags-container.component.css'
 })
-export class FeatureFlagsComponent implements OnInit {
-    flags = signal<FeatureFlag[]>([]);
-    totalCount = signal<number>(0);
 
-    searchTerm = signal<string>('');
-    selectedEnvironment = signal<string>('all');
-    selectedStatus = signal<string>('all');
-    pageNumber = signal<number>(1);
-    pageSize = signal<number>(5);
+export class FeatureFlagsContainerComponent implements OnInit {
 
-    environments: string[] = ['development', 'staging', 'production'];
+    readonly vm = computed<FeatureFlagsViewModel>(() => ({
+        flags: this.flags(),
+        totalItems: this.totalCount(),
+        page: this.pageNumber(),
+        pageSize: this.pageSize(),
+        searchTerm: this.searchTerm(),
+        environment: this.selectedEnvironment(),
+        status: this.selectedStatus(),
+        environments: this.environments
+    }));
+
+    private readonly flags = signal<FeatureFlag[]>([]);
+    private readonly totalCount = signal<number>(0);
+
+    private readonly searchTerm = signal<string>('');
+    private readonly selectedEnvironment = signal<string>('all');
+    private readonly selectedStatus = signal<string>('all');
+    private readonly pageNumber = signal<number>(1);
+    private readonly pageSize = signal<number>(5);
+
+    private readonly environments: string[] = ['development', 'staging', 'production'];
 
     constructor(
         private featureFlagsService: FeatureFlagsService,
@@ -56,35 +82,30 @@ export class FeatureFlagsComponent implements OnInit {
         });
     }
 
-    paginatedFlags = computed(() => this.flags());
-    totalItems = computed(() => this.totalCount());
-    totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
-
-    onSearchChange(): void {
+    setSearch(term: string) {
+        this.searchTerm.set(term);
         this.pageNumber.set(1);
         this.loadFlags();
     }
 
-    onEnvironmentChange(env: string): void {
+    setEnvironment(env: string) {
         this.selectedEnvironment.set(env);
         this.pageNumber.set(1);
         this.loadFlags();
     }
 
-    onStatusChange(status: string): void {
+    setStatus(status: string) {
         this.selectedStatus.set(status);
         this.pageNumber.set(1);
         this.loadFlags();
     }
 
-    onPageChange(page: number): void {
-        if (page < 1 || page > this.totalPages()) return;
+    changePage(page: number) {
         this.pageNumber.set(page);
         this.loadFlags();
     }
 
     toggleStatus(flag: FeatureFlag): void {
-
         const previousStatus = flag.status;
         this.featureFlagsService.toggleFeatureFlagStatus(flag.id).subscribe({
             next: (updatedFlag) => {
@@ -106,39 +127,10 @@ export class FeatureFlagsComponent implements OnInit {
                             : f
                     )
                 );
-
                 this.errorHandlerService.showError(
                     'Failed to toggle feature flag. Change reverted.'
                 );
             }
         });
-    }
-
-    mathMin(a: number, b: number): number {
-        return Math.min(a, b);
-    }
-
-    get pageNumbers(): (number | string)[] {
-        const total = this.totalPages();
-        const current = this.pageNumber();
-        const pages: (number | string)[] = [];
-
-        if (total <= 5) {
-            for (let i = 1; i <= total; i++) pages.push(i);
-        } else {
-            pages.push(1);
-            if (current > 3) pages.push('...');
-
-            const start = Math.max(2, current - 1);
-            const end = Math.min(total - 1, current + 1);
-
-            for (let i = start; i <= end; i++) {
-                if (!pages.includes(i)) pages.push(i);
-            }
-
-            if (current < total - 2) pages.push('...');
-            if (!pages.includes(total)) pages.push(total);
-        }
-        return pages;
     }
 }

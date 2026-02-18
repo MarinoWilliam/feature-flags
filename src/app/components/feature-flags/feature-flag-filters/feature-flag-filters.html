@@ -1,0 +1,31 @@
+<div class="card-header d-block">
+    <div class="row gx-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fs-12 fw-semibold text-muted mb-1">Search Flag</label>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" placeholder="Search feature flags..."
+                    [ngModel]="searchTerm" (ngModelChange)="searchChange.emit($event)" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fs-12 fw-semibold text-muted mb-1">Environment</label>
+            <select class="form-select" [ngModel]="environment" (ngModelChange)="environmentChange.emit($event)">
+                <option value="all">All Environments</option>
+                <option *ngFor="let env of environments" [value]="env">
+                    {{ env | titlecase }}
+                </option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label fs-12 fw-semibold text-muted mb-1">Status</label>
+            <select class="form-select" [ngModel]="status" (ngModelChange)="statusChange.emit($event)">
+                <option value="all">All Statuses</option>
+                <option value="enabled">Enabled Only</option>
+                <option value="disabled">Disabled Only</option>
+            </select>
+        </div>
+    </div>
+</div>
