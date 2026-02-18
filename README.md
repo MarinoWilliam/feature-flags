@@ -2,7 +2,7 @@
 
 A **Feature Flags Management Dashboard** built with modern Angular practices, simulating how enterprise applications manage runtime configuration across multiple environments (development / staging / production).
 
-**Demonstrates:** feature flag filtering, environment-based configuration, server-side pagination, optimistic UI updates, global HTTP loading interception, centralized error handling, and mocked REST API behaviour via `json-server`.
+**Demonstrates:** feature flag filtering, environment-based configuration, server-side pagination, optimistic UI updates, global HTTP loading interception, centralized error handling, and mock REST API behaviour via `json-server`.
 
 ---
 
@@ -11,7 +11,7 @@ A **Feature Flags Management Dashboard** built with modern Angular practices, si
 | Technology | Purpose |
 |---|---|
 | Angular 17+ Standalone | No NgModules – simplified structure |
-| Angular Signals | Local reactive state management |
+| Angular Signals | ViewModel-driven UI state management |
 | HttpClient Interceptors | Global loader simulation |
 | Bootstrap | Lightweight styling |
 | json-server | Mock REST API |
@@ -24,25 +24,40 @@ A **Feature Flags Management Dashboard** built with modern Angular practices, si
 ### Standalone Components
 Uses Angular Standalone Components instead of NgModules to reduce boilerplate, improve encapsulation, and align with Angular's future direction.
 
-### Signals for UI State
-`HttpClient` Observables handle API calls while Angular Signals manage local UI state — keeping things simple without NgRx.
+### Container / Presentational Pattern
+
+The Feature Flags page follows a Smart Container / Dumb Component architecture.
+
+The container component manages:
+
+- API orchestration
+- state mutation
+- optimistic updates
+- page change orchestration
+
+Presentational components (Filters + Table) are responsible for UI rendering only.
+
+### ViewModel (vm) Pattern
+
+A computed ViewModel (`vm`) signal exposes UI-ready state to the template:
 
 ```ts
-flags = signal<FeatureFlag[]>([]);
-totalCount = signal<number>(0);
-pageNumber = signal<number>(1);
+readonly vm = computed(() => ({
+  flags: this.flags(),
+  totalItems: this.totalCount(),
+  page: this.pageNumber(),
+  pageSize: this.pageSize(),
+  searchTerm: this.searchTerm(),
+  environment: this.selectedEnvironment(),
+  status: this.selectedStatus(),
+  environments: this.environments
+}));
 
-totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
 ```
 
-### API-Driven Filtering & Pagination
-Filtering happens via query params — not in memory — to reflect real backend-driven behaviour.
+This keeps the template declarative while avoiding direct coupling to internal state signals.
+---
 
-```ts
-params = params.set('environment', environment);
-params = params.set('status', status);
-params = params.set('name_like', name);
-```
 
 ### Optimistic UI Updates
 Flags toggle instantly in the UI. If the API call fails (simulated 25% failure rate), the state rolls back and an error is shown globally.
@@ -65,6 +80,9 @@ src/app
 │
 ├── components/
 │   └── feature-flags/
+│       ├── feature-flags-container.component.ts
+│       ├── feature-flag-filters/
+│       └── feature-flag-table/
 │
 ├── core/
 │   ├── interceptors/
