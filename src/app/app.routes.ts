@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { FeatureFlagsComponent } from './features/feature-flags/feature-flags.component';
+import { FeatureFlagsComponent } from './components/feature-flags/feature-flags.component';
 import { LayoutComponent } from './core/layout/layout';
 
 export const routes: Routes = [
